@@ -40,9 +40,9 @@ app.put('/v1/test/:id', (req, res) => {
 app.get('/v1/test', (req, res) => {
   const { name, type } = req.query;
 
-  if (name === 'pest' && Number(type) === 123) {
+  if ( name === 'pest' && Number(type) === 123) {
     return res.status(200).json({ ID, name: 'pest', type: 123 });
-  } else if (name.length > 255) {
+  } else if (typeof name !== 'string' || name.length > 255) {
     return res.status(400).json({ error: `Ім'я має містити максимум 255 символів` });
   } else {
     return res.status(404).json({ error: 'Запит не знайдено.' });
