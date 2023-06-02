@@ -43,18 +43,29 @@ app.put('/v1/test/:id', (req, res) => {
 
 
 app.get('/v1/test', (req, res) => {
-  const { name, type } = req.query
+  const { name, type } = req.query;
 
-  if (!name && !type) {
-    return res.status(422).json({ error: 'Unprocessable Entity' });
-  } else if (name === 'pest' && Number(type) === 123) {
-    return res.status(200).json({ id: ID, name: 'pest', type: 123 });
-  } else if (typeof name !== 'string' || name.length > 255 || !name) {
-    return res.status(400).json({ error: `Bad Request` });
+  if (name === 'pest' && parseInt(type) === 123) {
+    const response = { id: ID, name: 'pest', type: 123 };
+    return res.status(200).json(response);
+  } else if (!name && !type) {
+    return res.status(204).send();
+  } else if (
+    (name && typeof name !== 'string') ||
+    (name && name.length > 255) ||
+    (type && (typeof type !== 'number' || isNaN(type)))
+  ) {
+    return res.status(400).json({ error: 'Bad Request' });
   } else {
     return res.status(404).json({ error: 'Not Found' });
   }
 });
+
+
+
+
+
+
 
 
 app.listen(PORT, () => {
