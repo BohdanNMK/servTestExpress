@@ -62,12 +62,6 @@ app.get('/v1/test', (req, res) => {
 });
 
 
-
-
-
-
-
-
 app.listen(PORT, () => {
   console.log(`server runs on the port ${PORT}`);
 });
