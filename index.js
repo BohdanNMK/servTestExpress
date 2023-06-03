@@ -23,6 +23,7 @@ app.post('/v1/test', (req, res) => {
     return res.status(400).json({ error: `Field "type" must be a number` });
   }
   res.status(201).json({ id:ID });
+  app.use(err,next)
 });
 
 
@@ -30,7 +31,7 @@ app.put('/v1/test/:id', (req, res) => {
   const { id } = req.params;
   const { type } = req.body;
 
-  if (!/^[a-zA-Z0-9]+$/.test(id) || isNaN(id) || Number(id) !== ID) {
+  if (!/^[a-zA-Z0-9]+$/.test(id) || isNaN(id) !== ID) {
     return res.status(400).json({ error: 'Bad Request' });
   }
   if (type !== undefined) {
