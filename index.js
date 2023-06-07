@@ -56,11 +56,8 @@ app.get('/v1/test', (req, res) => {
     (type && (typeof type !== 'string' || isNaN(parseInt(type)) || parseInt(type) !== TYPE_VALUE))
   ) {
     return res.status(400).json({ error: HTTP_MESSAGES[400] });
-  } else {
-    return res.status(404).json({ error: HTTP_MESSAGES[404] });//??? не зовсім зрозучів чому не 404.
-  }
+  } 
 });
-
 
 
 app.listen(PORT, () => {
