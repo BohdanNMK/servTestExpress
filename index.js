@@ -1,5 +1,5 @@
 const express = require('express');
-const { ID, PORT,MAX_LENGTH,TYPE_VALUE,HTTP_STATUS,HTTP_MESSAGES } = require('./variable');
+const { ID, PORT,MAX_LENGTH,TYPE_VALUE } = require('./variable');
 const app = express();
 const statusCodes = require('http').STATUS_CODES
 
@@ -7,7 +7,7 @@ const statusCodes = require('http').STATUS_CODES
 app.use(express.json());
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(statusCodes.BAD_REQUEST).json({error: "ERR_HTTP_STATUS.BAD_REQUEST"});//чи можна таким чином(чи дозволений такий формат)?
+  res.status(statusCodes.BAD_REQUEST).json({errorCode: 'statusCodes.BAD_REQUEST'});
 });
 
 
@@ -15,15 +15,15 @@ app.post('/v1/test', (req, res) => {
   const { name, type } = req.body;
 
   if (!name || !type) {
-    return res.status(422).json({ error: HTTP_STATUS.BAD_REQUEST });//Чи допустимий таким чином формат помилки?
+    return res.status(statusCodes.BAD_REQUEST).json({ errorCode: statusCodes.BAD_REQUEST});
   }
   if (typeof name !== 'string' || name.length > MAX_LENGTH) {
-    return res.status(400).json({  HTTP_MESSAGES:400.2 });
+    return res.status(statusCodes.BAD_REQUEST).json({errorCode: statusCodes.BAD_REQUEST});
   }
   if (typeof type !== 'number') {
-    return res.status(400).json({ error: HTTP_MESSAGES[400.3] });
+    return res.status(statusCodes.BAD_REQUEST).json({errorCode: statusCodes.BAD_REQUEST});
   }
-  res.status(201).json({ id:ID });
+  res.status(statusCodes).json({ id:ID });
 });
 
 
@@ -32,16 +32,16 @@ app.put('/v1/test/:id', (req, res) => {
   const { type } = req.body;
 
   if (!/^[0-9]+$/.test(id) ) {
-    return res.status(422).json({ error: HTTP_MESSAGES[422]});//
+    return res.status(statusCodes[400]).json({ error: statusCodes[400]});
   }
-  const parceId = parseInt(id);//1
+  const parceId = parseInt(id);
   if ( parceId !== ID ){
-    return res.status(400).json({ error: HTTP_MESSAGES[400] });
+    return res.status(statusCodes[400]).json({ error: statusCodes[400] });
   }
   if (!isNaN(type)) {
-    return res.status(422).json({ error: HTTP_MESSAGES[422]});//
+    return res.status(statusCodes.UNPROCESSABLE_CONTENT).json({ error: statusCodes[422]});
   }
-  return res.status(200).json({ id: parceId, type: parceType });
+  return res.status(statusCodes[200]).json({ id: parceId, type});
 });
 
 
