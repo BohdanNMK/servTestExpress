@@ -1,29 +1,26 @@
 const express = require('express');
-const { ID, PORT,MAX_LENGTH,TYPE_VALUE } = require('./variable');
+const { VALUE, HTTP_MESSAGES, PORT } = require('./variable');
 const app = express();
-const statusCodes = require('http').STATUS_CODES
+const statusCodes = require('http2').constants
 
 
 app.use(express.json());
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(statusCodes.BAD_REQUEST).json({errorCode: 'statusCodes.BAD_REQUEST'});
+  res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.BAD_REQUEST });
 });
 
 
 app.post('/v1/test', (req, res) => {
   const { name, type } = req.body;
 
-  if (!name || !type) {
-    return res.status(statusCodes.BAD_REQUEST).json({ errorCode: statusCodes.BAD_REQUEST});
+  if (!name && !type(!name || !type)) {
+    return res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.ERR400.ERR_REQUIRED_FIELDS });
   }
-  if (typeof name !== 'string' || name.length > MAX_LENGTH) {
-    return res.status(statusCodes.BAD_REQUEST).json({errorCode: statusCodes.BAD_REQUEST});
+  if (typeof name !== 'string' && typeof type !== 'number' || name.length >= VALUE.MAX_LENGTH) {
+    return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
   }
-  if (typeof type !== 'number') {
-    return res.status(statusCodes.BAD_REQUEST).json({errorCode: statusCodes.BAD_REQUEST});
-  }
-  res.status(statusCodes).json({ id:ID });
+  res.status(statusCodes.HTTP_STATUS_CREATED).json({ id: VALUE.ID });
 });
 
 
@@ -31,40 +28,42 @@ app.put('/v1/test/:id', (req, res) => {
   const { id } = req.params;
   const { type } = req.body;
 
-  if (!/^[0-9]+$/.test(id) ) {
-    return res.status(statusCodes[400]).json({ error: statusCodes[400]});
+  if (typeof id === 'undefined') {
+    return res.status(statusCodes.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({ error: HTTP_MESSAGES.INTERNAL_SERVER_ERROR })
+  }
+  if (!/^[0-9]+$/.test(id)) {
+    return res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.BAD_REQUEST });
   }
   const parceId = parseInt(id);
-  if ( parceId !== ID ){
-    return res.status(statusCodes[400]).json({ error: statusCodes[400] });
+  if (parceId !== VALUE.ID) {
+    return res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.BAD_REQUEST });
   }
-  if (!isNaN(type)) {
-    return res.status(statusCodes.UNPROCESSABLE_CONTENT).json({ error: statusCodes[422]});
+  if (!type || typeof type === 'undefined' || typeof type !== 'number') {
+    return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
   }
-  return res.status(statusCodes[200]).json({ id: parceId, type});
+  return res.status(statusCodes.HTTP_STATUS_OK).json({ id: parceId, type });
 });
 
 
 app.get('/v1/test', (req, res) => {
   const { name, type } = req.query;
-  
+
   if (!name && !type || (!name || !type || name.length <= 0 || type.length <= 0)) {
-    return res.sendStatus(204);
+    return res.sendStatus(statusCodes.HTTP_STATUS_BAD_REQUEST);
   }
-  if (name.length > MAX_LENGTH) {
-    return res.status(400).json({ error: HTTP_MESSAGES[400] });
+  if (typeof name !== 'string' || name.length >= VALUE.MAX_LENGTH) {
+    return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.BAD_REQUEST });
   }
   if (!/^[0-9]+$/.test(type)) {
-    return res.status(422).json({ error: 'Invalid type' });
+    return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
   }
+
   const parseType = parseInt(type);
-  if (name === 'pest' && parseType === TYPE_VALUE) {
-    return res.status(200).json({ id: ID, name: 'pest', type: TYPE_VALUE });
+  if (name === VALUE.NAME_VALUE && parseType === VALUE.TYPE_VALUE) {
+    return res.status(statusCodes.HTTP_STATUS_OK).json({ id: VALUE.ID, name: VALUE.NAME_VALUE, type: VALUE.TYPE_VALUE });
   }
-  return res.sendStatus(204);
+  return res.sendStatus(statusCodes.HTTP_STATUS_NO_CONTENT);
 });
-
-
 
 
 app.listen(PORT, () => {
