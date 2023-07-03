@@ -14,55 +14,54 @@ app.use((err, req, res, next) => {
 app.post('/v1/test', (req, res) => {
   const { name, type } = req.body;
 
-  if (!name && !type(!name || !type)) {
+  if (!name && !type || (!name || !type)) {
     return res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.ERR400.ERR_REQUIRED_FIELDS });
   }
-  if (typeof name !== 'string' && typeof type !== 'number' || name.length >= VALUE.MAX_LENGTH) {
-    return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
+  if (typeof name === 'string' && name.length <= VALUE.MAX_LENGTH && typeof type === 'number' ) {
+    return res.status(statusCodes.HTTP_STATUS_CREATED).json({ id: VALUE.ID });
   }
-  res.status(statusCodes.HTTP_STATUS_CREATED).json({ id: VALUE.ID });
+  return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
 });
 
 
 app.put('/v1/test/:id', (req, res) => {
   const { id } = req.params;
-  const { type } = req.body;
+ 
 
   if (typeof id === 'undefined') {
     return res.status(statusCodes.HTTP_STATUS_INTERNAL_SERVER_ERROR).json({ error: HTTP_MESSAGES.INTERNAL_SERVER_ERROR })
   }
   if (!/^[0-9]+$/.test(id)) {
-    return res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.BAD_REQUEST });
+    return res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.ERR400.BAD_REQUEST });//TODO detalisation 
   }
-  const parceId = parseInt(id);
-  if (parceId !== VALUE.ID) {
-    return res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.BAD_REQUEST });
+  const parseId = parseInt(id);
+  if (parseId === VALUE.ID) {
+    const { type } = req.body;
+    if (typeof type === 'undefined') {
+      return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
+    }
+    return res.status(statusCodes.HTTP_STATUS_OK).json({ id: parseId, type })
   }
-  if (!type || typeof type === 'undefined' || typeof type !== 'number') {
-    return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
-  }
-  return res.status(statusCodes.HTTP_STATUS_OK).json({ id: parceId, type });
+
+  return res.status(statusCodes.HTTP_STATUS_BAD_REQUEST).json({ error: HTTP_MESSAGES.ERR400.BAD_REQUEST });
 });
 
 
 app.get('/v1/test', (req, res) => {
   const { name, type } = req.query;
 
-  if (!name && !type || (!name || !type || name.length <= 0 || type.length <= 0)) {
-    return res.sendStatus(statusCodes.HTTP_STATUS_BAD_REQUEST);
+  if (!name && !type || (!name || !type)) {
+    return res.sendStatus(statusCodes.HTTP_STATUS_NO_CONTENT);
   }
-  if (typeof name !== 'string' || name.length >= VALUE.MAX_LENGTH) {
-    return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.BAD_REQUEST });
+  if (typeof name === 'string' && name.length <= VALUE.MAX_LENGTH && /^[0-9]+$/.test(type)) {
+    const parseType = parseInt(type);
+    if (name === VALUE.NAME_VALUE && parseType === VALUE.TYPE_VALUE) {
+      return res.status(statusCodes.HTTP_STATUS_OK).json({ id: VALUE.ID, name: VALUE.NAME_VALUE, type: VALUE.TYPE_VALUE });
+    }
+    return res.sendStatus(statusCodes.HTTP_STATUS_NO_CONTENT)
+   
   }
-  if (!/^[0-9]+$/.test(type)) {
-    return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
-  }
-
-  const parseType = parseInt(type);
-  if (name === VALUE.NAME_VALUE && parseType === VALUE.TYPE_VALUE) {
-    return res.status(statusCodes.HTTP_STATUS_OK).json({ id: VALUE.ID, name: VALUE.NAME_VALUE, type: VALUE.TYPE_VALUE });
-  }
-  return res.sendStatus(statusCodes.HTTP_STATUS_NO_CONTENT);
+  return res.status(statusCodes.HTTP_STATUS_UNPROCESSABLE_ENTITY).json({ error: HTTP_MESSAGES.UNPROCESSABLE_ENTITY });
 });
 
 
